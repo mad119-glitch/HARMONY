@@ -5,7 +5,13 @@
       <Sidebar @employeeSelected="selectEmployee" />
 
       <main class="dashboard-content">
-        <h2 class="dashboard-title">Dashboard Overview</h2>
+        <div class="dashboard-header">
+          <h2 class="dashboard-title">Dashboard Overview</h2>
+          <button class="add-employee-button" @click="showAddEmployee = true">
+            Add New Employee
+          </button>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-box">
             <h3>Total Employees</h3>
@@ -48,6 +54,8 @@
             </tbody>
           </table>
         </div>
+
+        <AddEmployeeModal v-if="showAddEmployee" @close="showAddEmployee = false" />
       </main>
 
       <aside class="employee-detail">
@@ -76,9 +84,11 @@
 <script setup>
 import AppHeader from '@/components/AppHeader.vue'
 import Sidebar from '@/components/AdminSidebar.vue'
+import AddEmployeeModal from '@/components/AddEmployeeModal.vue'
 import { ref } from 'vue'
 
 const selectedEmployee = ref(null)
+const showAddEmployee = ref(false)
 
 const logs = ref([
   { name: 'Dr. John Smith', action: 'Login', time: 'Today, 14:32', status: 'Success' },
@@ -108,15 +118,31 @@ function selectEmployee(employee) {
 .dashboard-content {
   flex: 1;
   padding: 24px;
-  height: calc(100vh - 60px); /* Full height minus header */
+  height: calc(100vh - 60px);
   overflow-y: auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .dashboard-title {
   font-size: 22px;
-  margin-bottom: 20px;
   font-weight: bold;
   color: black;
+}
+
+.add-employee-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .stats-grid {
@@ -134,13 +160,16 @@ function selectEmployee(employee) {
   text-align: left;
   color: black;
 }
+
 .stat-box h3 {
   font-size: 14px;
 }
+
 .stat-box p {
   font-weight: bold;
   font-size: 24px;
 }
+
 .logs-section table {
   width: 100%;
   border-collapse: collapse;
@@ -150,12 +179,15 @@ function selectEmployee(employee) {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   color: black;
 }
+
 .logs-section h3 {
   font-weight: bold;
 }
+
 .logs-section th {
   font-weight: bold;
 }
+
 .logs-section td {
   padding: 12px;
   text-align: center;

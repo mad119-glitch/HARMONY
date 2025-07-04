@@ -39,7 +39,7 @@ function login() {
     return
   }
 
-  if (email.value === 'd@d.com' && password.value === '123') {
+  if (email.value === 'md' && password.value === '123') {
     switch (role.value) {
       case 'admin':
         router.push('/admin-dashboard')
