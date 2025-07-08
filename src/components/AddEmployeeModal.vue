@@ -18,6 +18,7 @@
         <form @submit.prevent="submitPatient">
           <input v-model="patient.name" placeholder="Full Name" required />
           <input v-model="patient.cnic" placeholder="CNIC" required />
+          <input v-model="patient.phone" placeholder="Phone" required />
           <input v-model="patient.age" type="number" placeholder="Age" required />
           <select v-model="patient.gender">
             <option disabled value="">Select Gender</option>
@@ -48,6 +49,7 @@
             <option>Male</option>
             <option>Female</option>
           </select>
+          <input v-model="staff.phone" placeholder="Phone" required />
           <input v-model="staff.age" type="number" placeholder="Age" required />
           <input v-model="staff.createdAt" type="date" required />
           <button type="submit">Submit</button>
@@ -56,9 +58,9 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 
 const showPatientForm = ref(false)
 const showStaffForm = ref(false)
@@ -66,6 +68,7 @@ const showStaffForm = ref(false)
 const patient = ref({
   name: '',
   cnic: '',
+  phone: '',
   age: '',
   gender: '',
   createdAt: '',
@@ -77,18 +80,29 @@ const staff = ref({
   email: '',
   password: '',
   gender: '',
+  phone: '',
   age: '',
   createdAt: '',
 })
 
-function submitPatient() {
-  alert('Patient Submitted!')
-  console.log(patient.value)
+async function submitPatient() {
+  try {
+    await axios.post('http://localhost:3000/api/patient', patient.value)
+    alert('✅ Patient added successfully')
+  } catch (err) {
+    console.error('❌ Failed to add patient:', err.message)
+    alert('❌ Error adding patient')
+  }
 }
 
-function submitStaff() {
-  alert('Staff Submitted!')
-  console.log(staff.value)
+async function submitStaff() {
+  try {
+    await axios.post('http://localhost:3000/api/staff', staff.value)
+    alert('✅ Staff added successfully')
+  } catch (err) {
+    console.error('❌ Failed to add staff:', err.message)
+    alert('❌ Error adding staff')
+  }
 }
 </script>
 

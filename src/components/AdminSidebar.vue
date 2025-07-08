@@ -19,14 +19,14 @@
     <ul class="employee-list">
       <li
         v-for="employee in filteredEmployees"
-        :key="employee.name"
+        :key="employee.StaffID"
         class="employee-item"
         @click="emit('employeeSelected', employee)"
       >
-        <div class="avatar">{{ getInitials(employee.name) }}</div>
+        <div class="avatar">{{ getInitials(employee.FullName) }}</div>
         <div class="info">
-          <div class="name">{{ employee.name }}</div>
-          <div class="role">{{ employee.role }}</div>
+          <div class="name">{{ employee.FullName }}</div>
+          <div class="role">{{ getRoleLabel(employee.RoleID) }}</div>
         </div>
       </li>
     </ul>
@@ -34,82 +34,52 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from 'vue'
+import { ref, computed, defineEmits, onMounted } from 'vue'
+import axios from 'axios'
 
 const emit = defineEmits(['employeeSelected'])
 
 const searchTerm = ref('')
 const selectedRole = ref('All')
 
-const roles = ['All', 'Doctors', 'Nurses', 'Pharmacists']
+// ✅ Use singular role names to match getRoleLabel()
+const roles = ['All', 'Doctor', 'Nurse', 'Pharmacist']
 
-const employees = ref([
-  {
-    name: 'Dr. John Smith',
-    role: 'Doctor',
-    email: 'john@harmony.com',
-    phone: '0322-1234567',
-    cnic: '35201-1234567-1',
-    lastLogin: 'Today, 14:32',
-    activity: ['Login Successful', 'Viewed Patient List', 'Logged Out'],
-  },
-  {
-    name: 'Sarah Johnson',
-    role: 'Nurse',
-    email: 'sarah@harmony.com',
-    phone: '0333-7654321',
-    cnic: '35202-9876543-2',
-    lastLogin: 'Today, 14:18',
-    activity: ['Checked Vitals', 'Assisted Surgery'],
-  },
-  {
-    name: 'Michael Chen',
-    role: 'Doctor',
-    email: 'michael@harmony.com',
-    phone: '0300-4567890',
-    cnic: '35203-1111222-3',
-    lastLogin: 'Today, 13:45',
-    activity: ['Login Successful', 'Prescribed Medicine'],
-  },
-  {
-    name: 'Emily Taylor',
-    role: 'Nurse',
-    email: 'emily@harmony.com',
-    phone: '0345-8899222',
-    cnic: '35204-9999888-4',
-    lastLogin: 'Today, 12:30',
-    activity: ['Assisted in Ward Round'],
-  },
-  {
-    name: 'Robert Garcia',
-    role: 'Pharmacist',
-    email: 'robert@harmony.com',
-    phone: '0311-1234123',
-    cnic: '35205-5432123-5',
-    lastLogin: 'Today, 11:00',
-    activity: ['Issued Medicines'],
-  },
-  {
-    name: 'Jessica Brown',
-    role: 'Doctor',
-    email: 'jessica@harmony.com',
-    phone: '0301-0000001',
-    cnic: '35206-7654321-6',
-    lastLogin: 'Today, 09:30',
-    activity: ['Performed Checkup', 'Updated Records'],
-  },
-])
+const employees = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/staff')
+    employees.value = response.data
+  } catch (err) {
+    console.error('Failed to fetch staff:', err)
+  }
+})
 
 function selectRole(role) {
   selectedRole.value = role
 }
 
+function getRoleLabel(roleId) {
+  switch (roleId) {
+    case 1:
+      return 'Admin'
+    case 2:
+      return 'Doctor'
+    case 3:
+      return 'Nurse'
+    case 4:
+      return 'Pharmacist'
+    default:
+      return 'Unknown'
+  }
+}
+
 const filteredEmployees = computed(() => {
   return employees.value.filter((emp) => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.value.toLowerCase())
-    const matchesRole =
-      selectedRole.value === 'All' ||
-      emp.role.toLowerCase().includes(selectedRole.value.toLowerCase())
+    const matchesSearch = emp.FullName.toLowerCase().includes(searchTerm.value.toLowerCase())
+    const role = getRoleLabel(emp.RoleID)
+    const matchesRole = selectedRole.value === 'All' || role === selectedRole.value
     return matchesSearch && matchesRole
   })
 })

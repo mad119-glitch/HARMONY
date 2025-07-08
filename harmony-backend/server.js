@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import sql from 'mssql/msnodesqlv8.js' // Make sure this line is included
+import sql from 'mssql/msnodesqlv8.js'
 import { connectToDB } from './db.js'
 
 const app = express()
@@ -9,17 +9,19 @@ const PORT = 3000
 app.use(cors())
 app.use(express.json())
 
-// Root route (optional)
+// ✅ Root route
 app.get('/', (req, res) => {
   res.send('Harmony Backend API is running.')
 })
 
 // ✅ Login route
+
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body
 
   try {
     const pool = await connectToDB()
+
     const result = await pool
       .request()
       .input('email', sql.NVarChar, email)
@@ -31,9 +33,40 @@ app.post('/api/login', async (req, res) => {
         WHERE s.Email = @email AND s.Password = @password AND r.RoleName = @role
       `)
 
-    if (result.recordset.length === 1) {
-      res.json({ success: true, user: result.recordset[0] })
+    const user = result.recordset[0]
+    const now = new Date().toISOString()
+
+    if (user) {
+      // ✅ Insert successful login log
+      await pool
+        .request()
+        .input('StaffID', sql.Int, user.StaffID)
+        .input('Action', sql.NVarChar, 'Login')
+        .input('LogTime', sql.DateTime, now)
+        .input('Status', sql.NVarChar, 'Success').query(`
+          INSERT INTO LoginLogs (StaffID, Action, LogTime, Status)
+          VALUES (@StaffID, @Action, @LogTime, @Status)
+        `)
+
+      res.json({ success: true, user })
     } else {
+      // ❌ Insert failed login attempt (optional: find StaffID by email if needed)
+      const staffRes = await pool
+        .request()
+        .input('email', sql.NVarChar, email)
+        .query(`SELECT StaffID FROM Staff WHERE Email = @email`)
+      const staffID = staffRes.recordset[0]?.StaffID || null
+
+      await pool
+        .request()
+        .input('StaffID', sql.Int, staffID)
+        .input('Action', sql.NVarChar, 'Login')
+        .input('LogTime', sql.DateTime, now)
+        .input('Status', sql.NVarChar, 'Failed').query(`
+          INSERT INTO LoginLogs (StaffID, Action, LogTime, Status)
+          VALUES (@StaffID, @Action, @LogTime, @Status)
+        `)
+
       res.status(401).json({ error: 'Invalid credentials' })
     }
   } catch (err) {
@@ -54,11 +87,101 @@ app.get('/api/staff', async (req, res) => {
   }
 })
 
-// 404 Handler
+// ✅ Get all staff with roles
+app.get('/api/staff', async (req, res) => {
+  try {
+    const pool = await connectToDB()
+    const result = await pool.request().query(`
+      SELECT
+        s.StaffID, s.FullName, s.Email, s.CNIC, s.Phone, s.RoleID,
+        r.RoleName
+      FROM Staff s
+      JOIN Roles r ON s.RoleID = r.RoleID
+    `)
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('❌ Error fetching staff:', err.message)
+    res.status(500).json({ error: 'Failed to fetch staff' })
+  }
+})
+
+// ✅ Get login logs
+app.get('/api/logs', async (req, res) => {
+  try {
+    const pool = await connectToDB()
+    const result = await pool.request().query('SELECT * FROM LoginLogs')
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('❌ Error fetching logs:', err.message)
+    res.status(500).json({ error: 'Failed to fetch login logs' })
+  }
+})
+
+app.post('/api/staff', async (req, res) => {
+  const { role, name, email, password, gender, age, createdAt, phone } = req.body
+
+  const roleMap = {
+    Admin: 1,
+    Doctor: 2,
+    Nurse: 3,
+    Pharmacist: 4,
+  }
+
+  const roleId = roleMap[role]
+
+  if (!roleId) return res.status(400).json({ error: 'Invalid role' })
+
+  try {
+    const pool = await connectToDB()
+    await pool
+      .request()
+      .input('FullName', sql.NVarChar, name)
+      .input('Email', sql.NVarChar, email)
+      .input('Password', sql.NVarChar, password)
+      .input('Gender', sql.NVarChar, gender)
+      .input('Age', sql.Int, age)
+      .input('RoleID', sql.Int, roleId)
+      .input('Phone', sql.NVarChar, phone)
+      .input('CreatedAt', sql.DateTime, createdAt).query(`
+        INSERT INTO Staff (FullName, Email, Password, Gender, Age, RoleID, Phone, CreatedAt)
+        VALUES (@FullName, @Email, @Password, @Gender, @Age, @RoleID, @Phone, @CreatedAt)
+      `)
+    res.json({ success: true, message: 'Staff added successfully' })
+  } catch (err) {
+    console.error('❌ Error adding staff:', err.message)
+    res.status(500).json({ error: 'Server error adding staff' })
+  }
+})
+
+app.post('/api/patient', async (req, res) => {
+  const { name, cnic, age, gender, createdAt, phone } = req.body
+
+  try {
+    const pool = await connectToDB()
+    await pool
+      .request()
+      .input('FullName', sql.NVarChar, name)
+      .input('CNIC', sql.NVarChar, cnic)
+      .input('Age', sql.Int, age)
+      .input('Gender', sql.NVarChar, gender)
+      .input('Phone', sql.NVarChar, phone)
+      .input('CreatedAt', sql.DateTime, createdAt).query(`
+        INSERT INTO Patients (FullName, CNIC, Age, Gender, Phone, CreatedAt)
+        VALUES (@FullName, @CNIC, @Age, @Gender, @Phone, @CreatedAt)
+      `)
+    res.json({ success: true, message: 'Patient added successfully' })
+  } catch (err) {
+    console.error('❌ Error adding patient:', err.message)
+    res.status(500).json({ error: 'Server error adding patient' })
+  }
+})
+
+// ✅ 404 fallback
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
 })
 
+// ✅ Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 })

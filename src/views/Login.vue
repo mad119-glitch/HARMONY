@@ -43,21 +43,19 @@ async function login() {
   }
 
   try {
-    const response = await axios.get('http://localhost:3000/api/staff')
-    const staff = response.data
+    const response = await axios.post('http://localhost:3000/api/login', {
+      email: email.value,
+      password: password.value,
+      role: role.value,
+    })
 
-    const matchedUser = staff.find(
-      (user) =>
-        user.Email.toLowerCase() === email.value.toLowerCase() &&
-        user.Password === password.value &&
-        user.RoleID === getRoleId(role.value),
-    )
+    const matchedUser = response.data.user
 
     if (matchedUser) {
-      // Save user to Pinia store
+      // ✅ Save user to Pinia store
       userStore.setUser(matchedUser)
 
-      // Redirect to appropriate dashboard
+      // ✅ Redirect to appropriate dashboard
       switch (role.value) {
         case 'admin':
           router.push('/admin-dashboard')
@@ -78,21 +76,6 @@ async function login() {
   } catch (err) {
     console.error('Login failed:', err)
     alert('Server error. Please try again later.')
-  }
-}
-
-function getRoleId(role) {
-  switch (role) {
-    case 'admin':
-      return 1
-    case 'doctor':
-      return 2
-    case 'nurse':
-      return 3
-    case 'pharmacist':
-      return 4
-    default:
-      return 0
   }
 }
 </script>

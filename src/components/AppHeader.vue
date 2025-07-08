@@ -44,30 +44,37 @@ function logout() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #b3dbe7;
-  color: black;
-  padding: 1.5% 24px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 16px 32px;
   font-weight: 500;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: bold;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+.logo img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .logo-text {
-  font-size: 25px;
-  font-weight: bold;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
 }
-.logo img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
+
 .user {
   display: flex;
   align-items: center;
@@ -77,38 +84,64 @@ function logout() {
 }
 
 .avatar {
-  background-color: #3b82f6;
+  background-color: #1e40af;
   color: white;
   font-weight: bold;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.4);
 }
 
 .username {
   font-weight: 500;
+  font-size: 14px;
+  color: #f3f4f6;
+  user-select: none;
 }
 
 .logout-popup {
   position: absolute;
   top: 120%;
   right: 0;
-  background: white;
-  color: black;
-  border-radius: 6px;
-  padding: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  color: #111827;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 10;
+  animation: fadeIn 0.2s ease-in-out;
 }
 
 .logout-popup button {
+  width: 100%;
   background-color: #ef4444;
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-popup button:hover {
+  background-color: #dc2626;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
