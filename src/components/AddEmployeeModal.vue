@@ -127,7 +127,7 @@ function submitStaff() {
 }
 .box {
   flex: 1;
-  background-color: #dceeff;
+  background-color: #ce5f5f;
   border-radius: 10px;
   padding: 20px;
   text-align: center;
@@ -162,7 +162,7 @@ select {
   font-size: 14px;
 }
 button {
-  background-color: #3b82f6;
+  background-color: #ce5f5f;
   color: white;
   border: none;
   padding: 10px;

@@ -13,7 +13,7 @@
           <option value="pharmacist">Pharmacist</option>
         </select>
 
-        <input type="text" v-model="email" placeholder="Enter Username" required />
+        <input type="text" v-model="email" placeholder="Enter Email" required />
         <input type="password" v-model="password" placeholder="Enter Password" required />
 
         <button type="submit">Login</button>
@@ -27,37 +27,72 @@ defineOptions({ name: 'UserLogin' })
 
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { useUserStore } from '@/stores/userStore'
 
 const email = ref('')
 const password = ref('')
 const role = ref('')
 const router = useRouter()
+const userStore = useUserStore()
 
-function login() {
+async function login() {
   if (!role.value) {
     alert('Please select your role before logging in.')
     return
   }
 
-  if (email.value === 'md' && password.value === '123') {
-    switch (role.value) {
-      case 'admin':
-        router.push('/admin-dashboard')
-        break
-      case 'doctor':
-        router.push('/doctor-dashboard')
-        break
-      case 'nurse':
-        router.push('/nurse-dashboard')
-        break
-      case 'pharmacist':
-        router.push('/pharmacist-dashboard')
-        break
-      default:
-        alert('Invalid role selected.')
+  try {
+    const response = await axios.get('http://localhost:3000/api/staff')
+    const staff = response.data
+
+    const matchedUser = staff.find(
+      (user) =>
+        user.Email.toLowerCase() === email.value.toLowerCase() &&
+        user.Password === password.value &&
+        user.RoleID === getRoleId(role.value),
+    )
+
+    if (matchedUser) {
+      // Save user to Pinia store
+      userStore.setUser(matchedUser)
+
+      // Redirect to appropriate dashboard
+      switch (role.value) {
+        case 'admin':
+          router.push('/admin-dashboard')
+          break
+        case 'doctor':
+          router.push('/doctor-dashboard')
+          break
+        case 'nurse':
+          router.push('/nurse-dashboard')
+          break
+        case 'pharmacist':
+          router.push('/pharmacist-dashboard')
+          break
+      }
+    } else {
+      alert('Invalid email, password, or role.')
     }
-  } else {
-    alert('Invalid username or password')
+  } catch (err) {
+    console.error('Login failed:', err)
+    alert('Server error. Please try again later.')
+  }
+}
+
+function getRoleId(role) {
+  switch (role) {
+    case 'admin':
+      return 1
+    case 'doctor':
+      return 2
+    case 'nurse':
+      return 3
+    case 'pharmacist':
+      return 4
+    default:
+      return 0
   }
 }
 </script>

@@ -5,8 +5,8 @@
       <span class="logo-text">HARMONY</span>
     </div>
     <div class="user" @click="showLogout = !showLogout">
-      <div class="avatar">MD</div>
-      <span class="username">Muhammad Daud</span>
+      <div class="avatar">{{ userInitials }}</div>
+      <span class="username">{{ userName }}</span>
       <div v-if="showLogout" class="logout-popup">
         <button @click="logout">Logout</button>
       </div>
@@ -15,13 +15,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
 
 const router = useRouter()
 const showLogout = ref(false)
 
+const userStore = useUserStore()
+
+const userName = computed(() => userStore.user?.FullName || 'Guest')
+const userInitials = computed(() =>
+  userName.value
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase(),
+)
+
 function logout() {
+  userStore.clearUser()
   router.push('/')
 }
 </script>
