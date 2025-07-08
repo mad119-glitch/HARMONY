@@ -193,6 +193,9 @@ button {
   margin-bottom: 10px;
   border-radius: 6px;
 }
+.vital-box p {
+  color: black;
+}
 .placeholder-text {
   font-size: 16px;
   color: black;
