@@ -176,6 +176,93 @@ app.post('/api/patient', async (req, res) => {
   }
 })
 
+// Server: Get all patients
+app.get('/api/patients', async (req, res) => {
+  try {
+    const pool = await connectToDB()
+
+    const result = await pool.request().query(`
+      SELECT
+        PatientID,
+        FullName,
+        CNIC,
+        Gender,
+        Age,
+        Phone,
+        CONVERT(varchar, CreatedAt, 23) AS CreatedAt
+      FROM Patients
+      ORDER BY FullName
+    `)
+
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('❌ Error fetching patients:', err.message)
+    res.status(500).json({ error: 'Failed to fetch patients' })
+  }
+})
+
+// ✅ Get vitals for a specific patient
+app.get('/api/vitals/:patientId', async (req, res) => {
+  const { patientId } = req.params
+  try {
+    const pool = await connectToDB()
+    const result = await pool.request().input('patientId', sql.Int, patientId).query(`
+        SELECT *
+        FROM PatientVitals
+        WHERE PatientID = @patientId
+        ORDER BY Date DESC, Time DESC
+      `)
+
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('Error fetching vitals:', err)
+    res.status(500).json({ error: 'Failed to fetch vitals' })
+  }
+})
+
+app.post('/api/vitals', async (req, res) => {
+  const {
+    PatientID,
+    BloodPressure,
+    HeartRate,
+    BloodSugar,
+    Temperature,
+    OxygenSaturation,
+    Notes,
+    Date,
+    Time,
+  } = req.body
+
+  try {
+    const pool = await connectToDB()
+    await pool
+      .request()
+      .input('PatientID', sql.Int, PatientID)
+      .input('BloodPressure', sql.NVarChar, BloodPressure)
+      .input('HeartRate', sql.Int, HeartRate)
+      .input('BloodSugar', sql.Float, BloodSugar)
+      .input('Temperature', sql.Float, Temperature)
+      .input('OxygenSaturation', sql.Float, OxygenSaturation)
+      .input('Notes', sql.NVarChar, Notes)
+      .input('Date', sql.Date, Date)
+      .input('Time', sql.Time, Time).query(`
+        INSERT INTO PatientVitals (
+          PatientID, BloodPressure, HeartRate, BloodSugar,
+          Temperature, OxygenSaturation, Notes, Date, Time
+        )
+        VALUES (
+          @PatientID, @BloodPressure, @HeartRate, @BloodSugar,
+          @Temperature, @OxygenSaturation, @Notes, @Date, @Time
+        )
+      `)
+
+    res.json({ success: true, message: 'Vitals saved.' })
+  } catch (err) {
+    console.error('Error saving vitals:', err)
+    res.status(500).json({ error: 'Failed to save vitals' })
+  }
+})
+
 // ✅ 404 fallback
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
