@@ -113,6 +113,10 @@ function getInitials(name) {
   border: 1px solid #ccc;
   margin-bottom: 16px;
   font-size: 14px;
+  border: 1px solid rgb(179, 40, 52);
+  border-color: #f63b3b;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(246, 59, 59, 0.2);
 }
 
 .filter-buttons {

@@ -231,6 +231,7 @@ app.post('/api/vitals', async (req, res) => {
     Notes,
     Date,
     Time,
+    CheckedBy, // ← Add this line
   } = req.body
 
   try {
@@ -245,14 +246,16 @@ app.post('/api/vitals', async (req, res) => {
       .input('OxygenSaturation', sql.Float, OxygenSaturation)
       .input('Notes', sql.NVarChar, Notes)
       .input('Date', sql.Date, Date)
-      .input('Time', sql.Time, Time).query(`
+      .input('Time', sql.Time, Time)
+      .input('CheckedBy', sql.NVarChar, CheckedBy) // ← Add this line
+      .query(`
         INSERT INTO PatientVitals (
           PatientID, BloodPressure, HeartRate, BloodSugar,
-          Temperature, OxygenSaturation, Notes, Date, Time
+          Temperature, OxygenSaturation, Notes, Date, Time, CheckedBy
         )
         VALUES (
           @PatientID, @BloodPressure, @HeartRate, @BloodSugar,
-          @Temperature, @OxygenSaturation, @Notes, @Date, @Time
+          @Temperature, @OxygenSaturation, @Notes, @Date, @Time, @CheckedBy
         )
       `)
 

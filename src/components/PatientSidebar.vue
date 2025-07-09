@@ -57,36 +57,48 @@ const filteredPatients = computed(() => {
   )
 })
 </script>
-
 <style scoped>
 .patient-sidebar {
   width: 270px;
-  background-color: #f3f4f6;
+  background-color: #f8f9fb;
   padding: 20px;
   height: calc(100vh - 60px);
   overflow-y: auto;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #e5e7eb;
+  box-sizing: border-box;
 }
 
 .search-boxes {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .search-input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #6085d4;
+  background-color: #ffffff;
   font-size: 14px;
+  color: #111827;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .section-title {
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 10px;
-  color: black;
+  color: #374151;
 }
 
 .patient-list {
@@ -98,8 +110,8 @@ const filteredPatients = computed(() => {
 .patient-item {
   display: flex;
   align-items: center;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -110,16 +122,17 @@ const filteredPatients = computed(() => {
 
 .avatar {
   background-color: #10b981;
-  color: black;
-  font-weight: bold;
+  color: white;
+  font-weight: 600;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 12px;
   font-size: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .info {
@@ -130,11 +143,11 @@ const filteredPatients = computed(() => {
 .name {
   font-weight: 600;
   font-size: 14px;
-  color: black;
+  color: #111827;
 }
 
 .cnic {
   font-size: 12px;
-  color: black;
+  color: #6b7280;
 }
 </style>

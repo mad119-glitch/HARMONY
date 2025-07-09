@@ -8,9 +8,13 @@
       <main class="main-content">
         <div v-if="selectedPatient" class="patient-info">
           <h2>{{ selectedPatient.FullName }}</h2>
-          <p><strong>CNIC:</strong> {{ selectedPatient.CNIC }}</p>
-          <p><strong>Gender:</strong> {{ selectedPatient.Gender }}</p>
-          <p><strong>Age:</strong> {{ selectedPatient.Age }}</p>
+          <div class="info-grid">
+            <p><strong>CNIC:</strong> {{ selectedPatient.CNIC }}</p>
+            <p><strong>Phone:</strong> {{ selectedPatient.Phone }}</p>
+            <p><strong>Gender:</strong> {{ selectedPatient.Gender }}</p>
+            <p><strong>Age:</strong> {{ selectedPatient.Age }}</p>
+            <p><strong>Created At:</strong> {{ selectedPatient.CreatedAt }}</p>
+          </div>
         </div>
 
         <div v-if="selectedPatient" class="vital-form">
@@ -51,12 +55,14 @@
           <div class="vitals-display" v-if="filteredVitals.length">
             <h4>Vitals on {{ filterDate }}</h4>
             <div class="vital-box" v-for="(v, index) in filteredVitals" :key="index">
-              <p><strong>Time:</strong> {{ v.Time }}</p>
-              <p><strong>BP:</strong> {{ v.BloodPressure }}</p>
-              <p><strong>HR:</strong> {{ v.HeartRate }}</p>
-              <p><strong>Sugar:</strong> {{ v.BloodSugar }}</p>
-              <p><strong>Temp:</strong> {{ v.Temperature }}</p>
-              <p><strong>O2 Sat:</strong> {{ v.OxygenSaturation }}</p>
+              <div class="info-grid">
+                <p><strong>Time:</strong> {{ v.Time }}</p>
+                <p><strong>BP:</strong> {{ v.BloodPressure }}</p>
+                <p><strong>HR:</strong> {{ v.HeartRate }}</p>
+                <p><strong>Sugar:</strong> {{ v.BloodSugar }}</p>
+                <p><strong>Temp:</strong> {{ v.Temperature }}</p>
+                <p><strong>O2 Sat:</strong> {{ v.OxygenSaturation }}</p>
+              </div>
               <p><strong>Notes:</strong> {{ v.Notes }}</p>
             </div>
           </div>
@@ -75,6 +81,9 @@ import AppHeader from '@/components/AppHeader.vue'
 import PatientSidebar from '@/components/PatientSidebar.vue'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useUserStore } from '@/stores/userStore' // ✅ Corrected import
+
+const userStore = useUserStore() // ✅ Use userStore
 
 const selectedPatient = ref(null)
 const vitals = ref({
@@ -110,7 +119,9 @@ async function submitVitals() {
     const payload = {
       ...vitals.value,
       PatientID: selectedPatient.value.PatientID,
+      CheckedBy: userStore.user?.FullName || 'Unknown Nurse', // ✅ Add nurse name
     }
+
     await axios.post('http://localhost:3000/api/vitals', payload)
     alert('Vitals saved successfully!')
     fetchVitals(selectedPatient.value.PatientID)
@@ -129,76 +140,155 @@ const filteredVitals = computed(() => {
 
 <style scoped>
 .nurse-dashboard {
-  background: #eef3f8;
+  background: #f5f8fb;
   min-height: 100vh;
   width: 100vw;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
 }
+
 .main-wrapper {
   display: flex;
 }
+
 .main-content {
   flex: 1;
-  padding: 24px;
+  padding: 32px;
   overflow-y: auto;
 }
+
 .patient-info {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  color: black;
+  background: #c8e6d0;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  border-left: 6px solid #10b981;
 }
-.vital-form {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+.patient-info h2 {
+  margin-bottom: 8px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #273b66;
 }
-.grid {
+
+.patient-info p {
+  margin: 4px 0;
+  color: #374151;
+  font-size: 15px;
+}
+.info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px 20px;
+  margin-top: 10px;
 }
+
+.vital-form {
+  background: #c8d7eb;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  border-left: 6px solid #3b82f6;
+}
+
+.vital-form h3 {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 input,
 textarea,
 select,
 button {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
+  background-color: #f9fafb;
+  transition:
+    border-color 0.3s ease,
+    background-color 0.3s ease;
 }
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #3b82f6;
+  background-color: #fff;
+  outline: none;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
 button {
   background-color: #3b82f6;
-  color: black;
-  cursor: pointer;
-  font-weight: bold;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  transition: background-color 0.3s ease;
 }
+
+button:hover {
+  background-color: #2563eb;
+}
+
 .date-filter {
-  margin-top: 20px;
+  margin-top: 24px;
 }
+
+.date-filter label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-right: 10px;
+}
+
 .vitals-display {
-  margin-top: 20px;
+  margin-top: 24px;
 }
+
+.vitals-display h4 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
 .vital-box {
-  background: #f3f4f6;
-  border: 1px solid #ddd;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 6px;
+  background: #f0f9ff;
+  border: 1px solid #dbeafe;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
+
 .vital-box p {
-  color: black;
+  margin: 4px 0;
+  font-size: 14px;
+  color: #1f2937;
 }
+
 .placeholder-text {
   font-size: 16px;
-  color: black;
+  color: #6b7280;
   margin-top: 40px;
+  text-align: center;
 }
 </style>
