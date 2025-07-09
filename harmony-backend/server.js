@@ -207,11 +207,20 @@ app.get('/api/vitals/:patientId', async (req, res) => {
   try {
     const pool = await connectToDB()
     const result = await pool.request().input('patientId', sql.Int, patientId).query(`
-        SELECT *
-        FROM PatientVitals
-        WHERE PatientID = @patientId
-        ORDER BY Date DESC, Time DESC
-      `)
+      SELECT
+        BloodPressure,
+        HeartRate,
+        BloodSugar,
+        Temperature,
+        OxygenSaturation,
+        Notes,
+        CheckedBy,
+        CONVERT(varchar, Date, 23) AS Date,
+        CONVERT(varchar, Time, 8) AS Time
+      FROM PatientVitals
+      WHERE PatientID = @patientId
+      ORDER BY Date DESC, Time DESC
+    `)
 
     res.json(result.recordset)
   } catch (err) {
@@ -263,6 +272,38 @@ app.post('/api/vitals', async (req, res) => {
   } catch (err) {
     console.error('Error saving vitals:', err)
     res.status(500).json({ error: 'Failed to save vitals' })
+  }
+})
+
+app.post('/api/doctor-checkups', async (req, res) => {
+  const { PatientID, Medicines, Dosage, Days, CurrentCheckupDate, NextCheckupDate, DoctorName } =
+    req.body
+
+  try {
+    const pool = await connectToDB()
+    await pool
+      .request()
+      .input('PatientID', sql.Int, PatientID)
+      .input('Medicines', sql.NVarChar, Medicines)
+      .input('Dosage', sql.NVarChar, Dosage)
+      .input('Days', sql.Int, Days)
+      .input('CurrentCheckupDate', sql.Date, CurrentCheckupDate)
+      .input('NextCheckupDate', sql.Date, NextCheckupDate)
+      .input('DoctorName', sql.NVarChar, DoctorName).query(`
+        INSERT INTO DoctorCheckups (
+          PatientID, Medicines, Dosage, Days,
+          CurrentCheckupDate, NextCheckupDate, DoctorName
+        )
+        VALUES (
+          @PatientID, @Medicines, @Dosage, @Days,
+          @CurrentCheckupDate, @NextCheckupDate, @DoctorName
+        )
+      `)
+
+    res.json({ success: true, message: 'Checkup saved successfully' })
+  } catch (err) {
+    console.error('❌ Error saving checkup:', err)
+    res.status(500).json({ error: 'Failed to save doctor checkup' })
   }
 })
 

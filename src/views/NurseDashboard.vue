@@ -62,6 +62,7 @@
                 <p><strong>Sugar:</strong> {{ v.BloodSugar }}</p>
                 <p><strong>Temp:</strong> {{ v.Temperature }}</p>
                 <p><strong>O2 Sat:</strong> {{ v.OxygenSaturation }}</p>
+                <p><strong>Checked By:</strong> {{ v.CheckedBy }}</p>
               </div>
               <p><strong>Notes:</strong> {{ v.Notes }}</p>
             </div>
