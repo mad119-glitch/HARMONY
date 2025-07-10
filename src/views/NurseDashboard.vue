@@ -82,9 +82,9 @@ import AppHeader from '@/components/AppHeader.vue'
 import PatientSidebar from '@/components/PatientSidebar.vue'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import { useUserStore } from '@/stores/userStore' // ✅ Corrected import
+import { useUserStore } from '@/stores/userStore' //  Corrected import
 
-const userStore = useUserStore() // ✅ Use userStore
+const userStore = useUserStore() // Use userStore
 
 const selectedPatient = ref(null)
 const vitals = ref({
@@ -120,7 +120,7 @@ async function submitVitals() {
     const payload = {
       ...vitals.value,
       PatientID: selectedPatient.value.PatientID,
-      CheckedBy: userStore.user?.FullName || 'Unknown Nurse', // ✅ Add nurse name
+      CheckedBy: userStore.user?.FullName || 'Unknown Nurse', //  Add nurse name
     }
 
     await axios.post('http://localhost:3000/api/vitals', payload)

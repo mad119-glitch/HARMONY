@@ -98,10 +98,10 @@ async function submitPatient() {
 async function submitStaff() {
   try {
     await axios.post('http://localhost:3000/api/staff', staff.value)
-    alert('✅ Staff added successfully')
+    alert(' Staff added successfully')
   } catch (err) {
-    console.error('❌ Failed to add staff:', err.message)
-    alert('❌ Error adding staff')
+    console.error(' Failed to add staff:', err.message)
+    alert(' Error adding staff')
   }
 }
 </script>

@@ -52,10 +52,10 @@ async function login() {
     const matchedUser = response.data.user
 
     if (matchedUser) {
-      // ✅ Save user to Pinia store
+      //  Save user to Pinia store
       userStore.setUser(matchedUser)
 
-      // ✅ Redirect to appropriate dashboard
+      //  Redirect to appropriate dashboard
       switch (role.value) {
         case 'admin':
           router.push('/admin-dashboard')

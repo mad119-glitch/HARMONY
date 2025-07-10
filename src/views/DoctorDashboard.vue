@@ -64,6 +64,24 @@
               </div>
               <button type="submit">Save Checkup</button>
             </form>
+            <div class="date-filter">
+              <label>Filter Checkups by Date:</label>
+              <input type="date" v-model="filterDate" @change="fetchFilteredCheckups" />
+            </div>
+
+            <div v-if="filteredCheckups.length" class="filtered-checkups">
+              <h4>Doctor Checkups on {{ filterDate }}</h4>
+              <div class="vital-box" v-for="(c, index) in filteredCheckups" :key="index">
+                <div class="info-grid">
+                  <p><strong>Medicine:</strong> {{ c.Medicine }}</p>
+                  <p><strong>Dosage:</strong> {{ c.Dosage }}</p>
+                  <p><strong>Days:</strong> {{ c.Days }}</p>
+                  <p><strong>Checkup Date:</strong> {{ c.CheckupDate }}</p>
+                  <p><strong>Next Checkup:</strong> {{ c.NextCheckupDate }}</p>
+                  <p><strong>Checked By:</strong> {{ c.CheckedByDoctor }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -85,7 +103,6 @@ import { useUserStore } from '@/stores/userStore'
 const userStore = useUserStore()
 const selectedPatient = ref(null)
 const allVitals = ref([])
-
 const checkup = ref({
   Medicines: '',
   Dosage: '',
@@ -94,9 +111,14 @@ const checkup = ref({
   NextCheckupDate: '',
 })
 
+const filterDate = ref('')
+const filteredCheckups = ref([])
+
 function selectPatient(patient) {
   selectedPatient.value = patient
   fetchVitals(patient.PatientID)
+  filteredCheckups.value = [] // reset
+  filterDate.value = ''
 }
 
 async function fetchVitals(patientId) {
@@ -111,10 +133,26 @@ async function fetchVitals(patientId) {
 async function submitCheckup() {
   try {
     const payload = {
-      ...checkup.value,
       PatientID: selectedPatient.value.PatientID,
+      Medicines: checkup.value.Medicines.trim(),
+      Dosage: checkup.value.Dosage.trim(),
+      Days: parseInt(checkup.value.Days),
+      CurrentCheckupDate: checkup.value.CurrentCheckupDate,
+      NextCheckupDate: checkup.value.NextCheckupDate,
       DoctorName: userStore.user?.FullName || 'Unknown Doctor',
     }
+
+    if (
+      !payload.Medicines ||
+      !payload.Dosage ||
+      isNaN(payload.Days) ||
+      !payload.CurrentCheckupDate ||
+      !payload.NextCheckupDate
+    ) {
+      alert('Please fill out all checkup fields correctly.')
+      return
+    }
+
     await axios.post('http://localhost:3000/api/doctor-checkups', payload)
     alert('Checkup saved successfully!')
     checkup.value = {
@@ -125,8 +163,20 @@ async function submitCheckup() {
       NextCheckupDate: '',
     }
   } catch (err) {
+    console.error('❌ Error saving checkup:', err)
     alert('Error saving checkup')
-    console.error(err)
+  }
+}
+
+async function fetchFilteredCheckups() {
+  if (!selectedPatient.value || !filterDate.value) return
+  try {
+    const res = await axios.get(
+      `http://localhost:3000/api/doctor-checkups/${selectedPatient.value.PatientID}/${filterDate.value}`,
+    )
+    filteredCheckups.value = res.data
+  } catch (err) {
+    console.error('❌ Error fetching filtered checkups:', err)
   }
 }
 
@@ -181,7 +231,7 @@ const todaysVitals = computed(() => {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px 20px;
   margin-top: 10px;
-  color: #1f2937; /* ✅ Same color for vitals */
+  color: #1f2937; /*  Same color for vitals */
 }
 
 .vitals-section,
@@ -261,5 +311,16 @@ button:hover {
   margin: 4px 0;
   font-size: 14px;
   color: #1f2937;
+}
+.date-filter {
+  margin-top: 20px;
+  margin-bottom: 16px;
+}
+
+.filtered-checkups h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #1e293b;
 }
 </style>

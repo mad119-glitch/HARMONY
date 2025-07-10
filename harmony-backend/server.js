@@ -284,19 +284,19 @@ app.post('/api/doctor-checkups', async (req, res) => {
     await pool
       .request()
       .input('PatientID', sql.Int, PatientID)
-      .input('Medicines', sql.NVarChar, Medicines)
+      .input('Medicine', sql.NVarChar, Medicines)
       .input('Dosage', sql.NVarChar, Dosage)
       .input('Days', sql.Int, Days)
-      .input('CurrentCheckupDate', sql.Date, CurrentCheckupDate)
+      .input('CheckupDate', sql.Date, CurrentCheckupDate)
       .input('NextCheckupDate', sql.Date, NextCheckupDate)
-      .input('DoctorName', sql.NVarChar, DoctorName).query(`
+      .input('CheckedByDoctor', sql.NVarChar, DoctorName).query(`
         INSERT INTO DoctorCheckups (
-          PatientID, Medicines, Dosage, Days,
-          CurrentCheckupDate, NextCheckupDate, DoctorName
+          PatientID, Medicine, Dosage, Days,
+          CheckupDate, NextCheckupDate, CheckedByDoctor
         )
         VALUES (
-          @PatientID, @Medicines, @Dosage, @Days,
-          @CurrentCheckupDate, @NextCheckupDate, @DoctorName
+          @PatientID, @Medicine, @Dosage, @Days,
+          @CheckupDate, @NextCheckupDate, @CheckedByDoctor
         )
       `)
 
@@ -304,6 +304,101 @@ app.post('/api/doctor-checkups', async (req, res) => {
   } catch (err) {
     console.error('❌ Error saving checkup:', err)
     res.status(500).json({ error: 'Failed to save doctor checkup' })
+  }
+})
+
+app.get('/api/doctor-checkups/:patientId/:date', async (req, res) => {
+  const { patientId, date } = req.params
+  try {
+    const pool = await connectToDB()
+    const result = await pool
+      .request()
+      .input('patientId', sql.Int, patientId)
+      .input('date', sql.Date, date).query(`
+        SELECT
+          Medicine,
+          Dosage,
+          Days,
+          CONVERT(varchar, CheckupDate, 23) AS CheckupDate,
+          CONVERT(varchar, NextCheckupDate, 23) AS NextCheckupDate,
+          CheckedByDoctor
+        FROM DoctorCheckups
+        WHERE PatientID = @patientId AND CheckupDate = @date
+        ORDER BY CheckupDate DESC
+      `)
+
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('❌ Error fetching doctor checkups:', err)
+    res.status(500).json({ error: 'Failed to fetch doctor checkups' })
+  }
+})
+
+app.post('/api/medicine-delivery', async (req, res) => {
+  const {
+    PatientID,
+    Medicine,
+    Dosage,
+    Days,
+    CheckupDate,
+    TotalPrice,
+    IsDelivered,
+    DeliveryDateTime,
+    PharmacistName,
+  } = req.body
+
+  try {
+    const pool = await connectToDB()
+    await pool
+      .request()
+      .input('PatientID', sql.Int, PatientID)
+      .input('Medicine', sql.NVarChar, Medicine)
+      .input('Dosage', sql.NVarChar, Dosage)
+      .input('Days', sql.Int, Days)
+      .input('CheckupDate', sql.Date, CheckupDate)
+      .input('TotalPrice', sql.Decimal(10, 2), TotalPrice)
+      .input('IsDelivered', sql.Bit, IsDelivered)
+      .input('DeliveryDateTime', sql.DateTime, DeliveryDateTime)
+      .input('PharmacistName', sql.NVarChar, PharmacistName).query(`
+        INSERT INTO MedicineDelivery (
+          PatientID, Medicine, Dosage, Days,
+          CheckupDate, TotalPrice, IsDelivered,
+          DeliveryDateTime, PharmacistName
+        )
+        VALUES (
+          @PatientID, @Medicine, @Dosage, @Days,
+          @CheckupDate, @TotalPrice, @IsDelivered,
+          @DeliveryDateTime, @PharmacistName
+        )
+      `)
+
+    res.json({ success: true, message: 'Medicine delivery recorded successfully' })
+  } catch (err) {
+    console.error('❌ Error saving medicine delivery:', err)
+    res.status(500).json({ error: 'Failed to save medicine delivery' })
+  }
+})
+
+app.get('/api/medicine-delivery/:patientId/:date', async (req, res) => {
+  const { patientId, date } = req.params
+
+  try {
+    const pool = await connectToDB()
+    const result = await pool
+      .request()
+      .input('PatientID', sql.Int, patientId)
+      .input('CheckupDate', sql.Date, date).query(`
+        SELECT
+          Medicine, Dosage, Days, CheckupDate,
+          TotalPrice, IsDelivered, DeliveryDateTime, PharmacistName
+        FROM MedicineDelivery
+        WHERE PatientID = @PatientID AND CheckupDate = @CheckupDate
+      `)
+
+    res.json(result.recordset)
+  } catch (err) {
+    console.error('❌ Error fetching medicine delivery:', err)
+    res.status(500).json({ error: 'Failed to fetch delivery records' })
   }
 })
 
