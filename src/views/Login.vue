@@ -1,6 +1,7 @@
 <template>
   <div class="auth-container">
     <div class="auth-box">
+      <img src="@/assets/harmonylogo.jpg" alt="Harmony Logo" class="logo" />
       <h2>Welcome to HARMONY</h2>
       <p class="subtitle">Please login to continue</p>
 
@@ -14,7 +15,53 @@
         </select>
 
         <input type="text" v-model="email" placeholder="Enter Email" required />
-        <input type="password" v-model="password" placeholder="Enter Password" required />
+        <div class="password-wrapper">
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            v-model="password"
+            placeholder="Enter Password"
+            required
+          />
+          <span class="toggle-eye" @click="showPassword = !showPassword">
+            <svg
+              v-if="!showPassword"
+              xmlns="http://www.w3.org/2000/svg"
+              class="eye-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="eye-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.994 9.994 0 012.438-4.368M9.88 9.88a3 3 0 104.24 4.24M3 3l18 18"
+              />
+            </svg>
+          </span>
+        </div>
 
         <button type="submit">Login</button>
       </form>
@@ -35,6 +82,7 @@ const password = ref('')
 const role = ref('')
 const router = useRouter()
 const userStore = useUserStore()
+const showPassword = ref(false)
 
 async function login() {
   if (!role.value) {
@@ -52,10 +100,8 @@ async function login() {
     const matchedUser = response.data.user
 
     if (matchedUser) {
-      //  Save user to Pinia store
       userStore.setUser(matchedUser)
 
-      //  Redirect to appropriate dashboard
       switch (role.value) {
         case 'admin':
           router.push('/admin-dashboard')
@@ -107,6 +153,16 @@ async function login() {
   transform: translateY(-3px);
 }
 
+.logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 h2 {
   color: #0d47a1;
   font-size: 30px;
@@ -153,5 +209,26 @@ button {
 
 button:hover {
   background-color: #2563eb;
+}
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+.toggle-eye {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #3b82f6;
+}
+
+.eye-icon {
+  width: 20px;
+  height: 20px;
 }
 </style>
